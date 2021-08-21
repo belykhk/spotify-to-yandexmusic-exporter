@@ -1,0 +1,18 @@
+[spotify-to-yandex-music-exporter]
+# Spotify parameters
+## Get yours client id and client secret by creating app at 
+##  https://developer.spotify.com/
+## Don't forget to add youself as user for this application and this url to 
+## settings of applications: http://localhost
+spotifyclientid     = 
+spotifyclientsecret = 
+# Yandex music credentials
+## If you use 2FA (you should) - use one time password from yandex key
+yandexmusiclogin    = 
+yandexmusicpassword = 
+# Logging parameters
+loggingenabled  = True
+logginglevel    = INFO 
+loggingconsole  = True
+loggingfile     = False
+loggingfilepath = /tmp/spotify-to-yandex-music-exporter.log
