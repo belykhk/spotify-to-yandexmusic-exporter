@@ -3,7 +3,7 @@
 ## Get yours client id and client secret by creating app at 
 ##  https://developer.spotify.com/
 ## Don't forget to add youself as user for this application and this url to 
-## settings of applications: http://localhost
+## "Redirect URIs" settings of application: http://localhost
 spotifyclientid     = 
 spotifyclientsecret = 
 # Yandex music credentials
