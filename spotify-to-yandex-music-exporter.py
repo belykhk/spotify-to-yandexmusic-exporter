@@ -19,11 +19,10 @@ import time
 import random
 import string
 import sqlite3
+import requests
 from sqlite3 import Error
-
 try:
     from yandex_music import Client
-    from yandex_music.exceptions import Captcha
     logging.getLogger("yandex_music").setLevel(logging.ERROR)
     Client.notice_displayed = True
 except ImportError:
@@ -323,29 +322,35 @@ def yandexMusicGetAuth(login, password):
         # If we don't have token -- we need to create new one
         token = captcha_key = captcha_answer = None
         while not token:
+            data = {
+                'grant_type': 'password',
+                # id and secret is from yandex.music application for android
+                'client_id': '23cabbbdc6cd418abb4b39c32c41195d',
+                'client_secret': '53bc75238f0c4d08a118e51fe9203300',
+                'username': login,
+                'password': password,
+                'x_captcha_key': captcha_key,
+                'x_captcha_answer': captcha_answer
+            }
+            response = requests.post('https://oauth.yandex.com/token', 
+                                      data=data)
             try:
-                token = Client.generate_token_by_username_and_password(
-                    Client(
-                        oauth_url="https://oauth.yandex.ru",
-                    ),
-                    username=login,
-                    password=password,
-                    x_captcha_key=captcha_key,
-                    x_captcha_answer=captcha_answer,
-                )
-            except Captcha as e:
-                logging.warning("Captcha required")
-                e.captcha.download("captcha.png")
-                captcha_key = e.captcha.x_captcha_key
-                captcha_answer = input("Input numbers from file captcha.png: ")
-                passw = input(
-                    "Yandex password: [leave blank if 2FA not used] ")
-                if passw:
-                    password = passw
-            except Error as e:
-                logging.error("Cannot generate new token")
-                logging.error(e)
-                sys.exit(1)
+                if response.json()['access_token']:
+                    token = response.json()['access_token']
+            except KeyError:
+                pass
+            try:
+                if response.json()['error_description'] == 'CAPTCHA required' or \
+                    response.json()['error_description'] == 'Wrong CAPTCHA answer':
+                    captcha_key = response.json()['x_captcha_key']
+                    captcha_url = response.json()['x_captcha_url']
+                    captcha_answer = input("Input numbers from {} : ".format(
+                        captcha_url
+                    ))
+                if response.json()['error_description'] == 'login or password is not valid':
+                    password = input('Wrong password. If you use 2FA - input it: ')
+            except KeyError:
+                pass
         with open(os.path.dirname(os.path.realpath(__file__)) + "/.token",
                   "w+") as f:
             f.write(token)
